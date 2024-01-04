@@ -21,6 +21,7 @@ app.add_middleware(
 
 
 app_config = AppConfigProvider().app_config
+print(app_config)
 app.state.hfer = AppLogic(
     app_config["model_path"],
     app_config["image_input_dir"],
@@ -39,6 +40,6 @@ def index():
 @app.get("/emo_from_img")
 def getEmotionsFromImage(face_image_file):
     # print("Server.getEmotionsFromImage.name = " + face_image_file)
-    app.state.hfer.get_face_emotions_from_file(face_image_file, 8, "text")
+    json_str = app.state.hfer.get_face_emotions_from_file(face_image_file, 8, "text")
     # return HttpResponse("getEmotionsFromImage " + face_image_file)
-    return json.load(path.join(app.state.hfer.json_output_dir, face_image_file))
+    return json_str

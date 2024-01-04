@@ -78,12 +78,11 @@ class Model:
             bucket = client.get_bucket(bucket_name)
             blobs = bucket.list_blobs(prefix="models/")
 
-        try:
-            latest_blob = max(blobs, key=lambda x: x.updated)
-            latest_blob.download_to_filename(model_path)
-        except:
-            print(f"\nNo model found in GCS bucket {bucket_name}")
-
-            return None
+            try:
+                latest_blob = max(blobs, key=lambda x: x.updated)
+                latest_blob.download_to_filename(model_path)
+            except:
+                print(f"\nNo model found in GCS bucket {bucket_name}")
+                return None
 
         return tf.keras.models.load_model(model_path, compile=True)

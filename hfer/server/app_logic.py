@@ -28,4 +28,5 @@ class AppLogic:
         json_file_path = Path(self.json_output_dir, json_filename)
         with open(json_file_path, "w") as f:
             f.write(json_str)
-            f.write(json_str)
+
+        return result
