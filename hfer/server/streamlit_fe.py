@@ -20,17 +20,19 @@ if image_file is not None:
     file_content = image_file.read()
     st.image(file_content, caption="Uploaded image")
     payload = {"image_file": (image_file.name, file_content)}
+
+    ## Upload the file and save it to the back-end specified location
     response = requests.post(url="http://127.0.0.1:8000/upload_image", files=payload)
-    st.write(response.content)
 
     response = requests.get(
         url="http://127.0.0.1:8000/emotions_from_image",
-        data=json.dumps({"image_path": image_file.name}),
+        params={"image_path": image_file.name},
     )
-    st.write(
-        response.content
-    )  # top_three = dict(sorted(predictions.items(), key=lambda x: -x[1])[:3])
-    # st.header("Your Results")
-    # for l, p in top_three.items():
-    #    st.subheader(l)
-    #    st.write("Probability: " + str(round(p*100, 1)) + "%")
+    predictions = response.json()
+
+    ## Display predictions
+    top_three = dict(sorted(predictions.items(), key=lambda x: -x[1])[:3])
+    st.header("Your Results")
+    for l, p in top_three.items():
+        st.subheader(l)
+        st.write("Probability: " + str(round(p * 100, 1)) + "%")
