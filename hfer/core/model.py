@@ -24,9 +24,7 @@ def preprocess_file(img_path):
     Returns:
         A numpy array containing the preprocessed image.
     """
-    img = tf.keras.preprocessing.image.load_img(
-        img_path, target_size=(224, 224)
-    )
+    img = tf.keras.preprocessing.image.load_img(img_path, target_size=(224, 224))
     img_array = tf.keras.preprocessing.image.img_to_array(img)
     img_array_preprocessed = preprocess(img_array)
 
@@ -72,17 +70,19 @@ class Model:
         return self._model.predict(img_array)[0]
 
     def load_model(self, model_path, bucket_name):
+        """Loads the model from the model path. If a GCS bucket name is provided,
+        will first download the most recent model from the bucket and save it
+        locally at model path"""
         if bucket_name:
             client = storage.Client()
             bucket = client.get_bucket(bucket_name)
             blobs = bucket.list_blobs(prefix="models/")
 
-        try:
-            latest_blob = max(blobs, key=lambda x: x.updated)
-            latest_blob.download_to_filename(model_path)
-        except:
-            print(f"\nNo model found in GCS bucket {bucket_name}")
-
-            return None
+            try:
+                latest_blob = max(blobs, key=lambda x: x.updated)
+                latest_blob.download_to_filename(model_path)
+            except:
+                print(f"\nNo model found in GCS bucket {bucket_name}")
+                return None
 
         return tf.keras.models.load_model(model_path, compile=True)
