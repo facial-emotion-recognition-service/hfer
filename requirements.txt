@@ -7,6 +7,9 @@ Pillow
 ipdb
 google-cloud-storage
 
+#extraction
+face_recognition
+
 # For the web app
 fastapi
 uvicorn
