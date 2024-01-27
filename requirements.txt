@@ -10,3 +10,4 @@ google-cloud-storage
 # For the web app
 fastapi
 uvicorn
+streamlit

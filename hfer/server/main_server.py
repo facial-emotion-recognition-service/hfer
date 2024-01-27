@@ -1,11 +1,10 @@
-import json
 from os import path
 
 from hfer.server.app_config_provider import AppConfigProvider
 from hfer.server.app_logic import AppLogic
 from hfer.server.model_config_provider import ModelConfigProvider
 
-from fastapi import FastAPI
+from fastapi import FastAPI, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
@@ -21,7 +20,6 @@ app.add_middleware(
 
 
 app_config = AppConfigProvider().app_config
-print(app_config)
 app.state.hfer = AppLogic(
     app_config["model_path"],
     app_config["image_input_dir"],
@@ -37,9 +35,18 @@ def index():
     return {"ok": True}
 
 
-@app.get("/emo_from_img")
-def getEmotionsFromImage(face_image_file):
+@app.post("/upload_image")
+def uploadImage(image_file: UploadFile):
+    file_location = path.join(app.state.hfer.image_input_dir, image_file.filename)
+    print(file_location)
+    with open(file_location, "wb") as f:
+        f.write(image_file.file.read())
+    return {"INFO": f"File '{image_file.filename}' saved to your {file_location}."}
+
+
+@app.get("/emotions_from_image")
+def getEmotionsFromImage(image_path: str):
     # print("Server.getEmotionsFromImage.name = " + face_image_file)
-    json_str = app.state.hfer.get_face_emotions_from_file(face_image_file, 8, "text")
+    json_str = app.state.hfer.get_face_emotions_from_file(image_path, 8, "text")
     # return HttpResponse("getEmotionsFromImage " + face_image_file)
     return json_str
