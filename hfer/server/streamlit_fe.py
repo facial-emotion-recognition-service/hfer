@@ -2,6 +2,7 @@ import streamlit as st
 import json
 import requests
 from hfer.server.app_config_provider import AppConfigProvider
+import os
 
 st.title("Human Facial Emotion Recognizer")
 
@@ -13,7 +14,7 @@ st.write(
 )
 
 st.header("Try it out!")
-image_file = st.file_uploader("Upload an image of a face", type=["png"])
+image_file = st.file_uploader("Upload an image of a face", type=["png", "jpg"])
 ## I don't actually know if our model accepts more types?
 
 if image_file is not None:
@@ -26,7 +27,7 @@ if image_file is not None:
 
     response = requests.get(
         url="http://127.0.0.1:8000/emotions_from_image",
-        params={"image_path": image_file.name},
+        params={"image_path": os.path.join("raw", image_file.name)},
     )
     predictions = response.json()
 
