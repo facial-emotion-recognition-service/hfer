@@ -10,7 +10,9 @@ from fastapi.middleware.cors import CORSMiddleware
 app = FastAPI()
 
 ## streamlit run hfer/server/streamlit_fe.py
+## run in hfer
 ## uvicorn hfer.server.main_server:app --reload
+## run in hfer/hfer
 
 # Allowing all middleware is optional, but good practice for dev purposes
 app.add_middleware(
@@ -51,7 +53,8 @@ def uploadImage(image_file: UploadFile, sub_folder: str = "raw"):
 
 @app.get("/faces_from_image")
 def getFaceImages(image_path: str):
-    pass
+    json_str = app.state.hfer.get_faces_from_file(image_path)
+    return json_str
 
 
 @app.get("/emotions_from_image")

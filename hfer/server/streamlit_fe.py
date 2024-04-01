@@ -26,6 +26,16 @@ if image_file is not None:
     response = requests.post(url="http://127.0.0.1:8000/upload_image", files=payload)
 
     response = requests.get(
+        url="http://127.0.0.1:8000/faces_from_image",
+        params={"image_path": os.path.join("raw", image_file.name)},
+    )
+
+    print(response.json())
+    for path in response.json():
+        pass
+        # loop everything below
+
+    response = requests.get(
         url="http://127.0.0.1:8000/emotions_from_image",
         params={"image_path": os.path.join("raw", image_file.name)},
     )

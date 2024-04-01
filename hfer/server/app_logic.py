@@ -1,5 +1,6 @@
 import json
 from pathlib import Path
+from PIL import Image
 
 from hfer.core.predictors import Predictor
 from hfer.core.extractor import Extractor
@@ -41,11 +42,25 @@ class AppLogic:
         return result
 
     def get_faces_from_file(self, image_file):
-        img_path = Path(self.image_input_dir, "raw", image_file)
+        img_path = Path(self.image_input_dir, image_file)
         result = self.extractor.extract_faces(img_path)
-        print(result)
 
-        return result
+        save_dir = Path(self.image_input_dir, "extracted")
+        image_name = Path(image_file).stem
+
+        img = Image.open(img_path)
+        face_image_paths = []
+
+        for idx, face_coords in enumerate(result):
+            top, right, bottom, left = face_coords
+            crop_pic = img.crop((left, top, right, bottom))
+            save_path = Path(save_dir, image_name + str(idx) + ".jpg")
+            crop_pic.save(save_path)
+            face_image_paths.append(str(save_path))
+
+        print(face_image_paths)
+
+        return face_image_paths
 
     def draw_faces_on_image(self, image_file, face_locations):
         image = self.image_viewer.display_faces(image_file, face_locations)
