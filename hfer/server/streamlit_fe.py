@@ -3,6 +3,7 @@ import json
 import requests
 from hfer.server.app_config_provider import AppConfigProvider
 import os
+from PIL import Image
 
 st.title("Human Facial Emotion Recognizer")
 
@@ -30,20 +31,20 @@ if image_file is not None:
         params={"image_path": os.path.join("raw", image_file.name)},
     )
 
-    print(response.json())
-    for path in response.json():
-        pass
-        # loop everything below
+    for face_image_file in response.json():
+        response = requests.get(
+            url="http://127.0.0.1:8000/emotions_from_image",
+            params={"image_path": os.path.join("extracted", face_image_file)},
+        )
+        predictions = response.json()
 
-    response = requests.get(
-        url="http://127.0.0.1:8000/emotions_from_image",
-        params={"image_path": os.path.join("raw", image_file.name)},
-    )
-    predictions = response.json()
+        ## include img array in emotions from image
+        ## Display predictions
+        ## put in nice table
 
-    ## Display predictions
-    top_three = dict(sorted(predictions.items(), key=lambda x: -x[1])[:3])
-    st.header("Your Results")
-    for l, p in top_three.items():
-        st.subheader(l)
-        st.write("Probability: " + str(round(p * 100, 1)) + "%")
+        top_three = dict(sorted(predictions.items(), key=lambda x: -x[1])[:3])
+        st.header("Your Results")
+        st.image(Image.open(os.path.join("extracted", face_image_file)))
+        for l, p in top_three.items():
+            st.subheader(l)
+            st.write("Probability: " + str(round(p * 100, 1)) + "%")

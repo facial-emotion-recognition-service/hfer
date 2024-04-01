@@ -46,21 +46,23 @@ class AppLogic:
         result = self.extractor.extract_faces(img_path)
 
         save_dir = Path(self.image_input_dir, "extracted")
-        image_name = Path(image_file).stem
+        image_stem = Path(image_file).stem
 
         img = Image.open(img_path)
-        face_image_paths = []
+        face_image_files = []
 
         for idx, face_coords in enumerate(result):
             top, right, bottom, left = face_coords
             crop_pic = img.crop((left, top, right, bottom))
-            save_path = Path(save_dir, image_name + str(idx) + ".jpg")
+            image_file = image_stem + "_" + str(idx) + ".jpg"
+            save_path = Path(save_dir, image_file)
             crop_pic.save(save_path)
-            face_image_paths.append(str(save_path))
 
-        print(face_image_paths)
+            face_image_files.append(image_file)
 
-        return face_image_paths
+        print(face_image_files)
+
+        return face_image_files
 
     def draw_faces_on_image(self, image_file, face_locations):
         image = self.image_viewer.display_faces(image_file, face_locations)
