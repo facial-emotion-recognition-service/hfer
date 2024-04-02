@@ -45,15 +45,23 @@ def uploadImage(image_file: UploadFile, sub_folder: str = "raw"):
     file_location = path.join(
         app.state.hfer.image_input_dir, sub_folder, image_file.filename
     )
-    print(file_location)
+
     with open(file_location, "wb") as f:
         f.write(image_file.file.read())
     return {"INFO": f"File '{image_file.filename}' saved to your {file_location}."}
 
 
+@app.get("/image")
+def getImage(image_path: str):
+    print("get image")
+    json_str = app.state.hfer.get_image(image_path, "json")
+    return json_str
+
+
 @app.get("/faces_from_image")
 def getFaceImages(image_path: str):
     json_str = app.state.hfer.get_faces_from_file(image_path)
+
     return json_str
 
 

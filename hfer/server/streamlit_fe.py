@@ -4,14 +4,14 @@ import requests
 from hfer.server.app_config_provider import AppConfigProvider
 import os
 from PIL import Image
+from io import BytesIO
 
 st.title("Human Facial Emotion Recognizer")
 
 st.write("")
 st.write(
-    "Upload an image of an isolated face \
-    This will be updated to accept any \
-    image."
+    "Upload an image. This app will \
+    find the faces and identify the emotions."
 )
 
 st.header("Try it out!")
@@ -30,21 +30,30 @@ if image_file is not None:
         url="http://127.0.0.1:8000/faces_from_image",
         params={"image_path": os.path.join("raw", image_file.name)},
     )
-
-    for face_image_file in response.json():
+    response_json = response.json()
+    st.header(
+        f'{len(response_json)} face{"" if len(response_json) == 1 else "s"} detected.'
+    )
+    for face_image_file in response_json:
         response = requests.get(
             url="http://127.0.0.1:8000/emotions_from_image",
             params={"image_path": os.path.join("extracted", face_image_file)},
         )
         predictions = response.json()
 
-        ## include img array in emotions from image
-        ## Display predictions
         ## put in nice table
 
         top_three = dict(sorted(predictions.items(), key=lambda x: -x[1])[:3])
-        st.header("Your Results")
-        st.image(Image.open(os.path.join("extracted", face_image_file)))
+
+        response = requests.get(
+            url="http://127.0.0.1:8000/image",
+            params={"image_path": os.path.join("extracted", face_image_file)},
+        )
+        json_str = response.json()
+        image_info = json.loads(json_str)
+        img_data = image_info["data"].encode("latin1")
+        img = Image.frombytes(image_info["mode"], image_info["size"], img_data)
+
+        st.image(img)
         for l, p in top_three.items():
-            st.subheader(l)
-            st.write("Probability: " + str(round(p * 100, 1)) + "%")
+            st.write(f"{l.title()}: Probability: " + str(round(p * 100, 1)) + "%")

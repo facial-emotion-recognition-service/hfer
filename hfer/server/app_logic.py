@@ -31,7 +31,6 @@ class AppLogic:
     def get_face_emotions_from_file(self, face_image_name, top_n, ret):
         img_path = Path(self.image_input_dir, face_image_name)
         result = self.predictor.get_face_image_emotions(img_path, top_n, ret)
-        print(result)
 
         json_str = json.dumps(result, indent=4)
         json_filename = img_path.stem + ".json"
@@ -60,9 +59,27 @@ class AppLogic:
 
             face_image_files.append(image_file)
 
-        print(face_image_files)
-
         return face_image_files
+
+    def get_image(self, face_image_name, _type=None):
+        ## Consider using this and passing this around instead of the image path
+        img_path = Path(self.image_input_dir, face_image_name)
+        print(f"img path: {img_path}")
+        img = Image.open(img_path)
+        if _type == "json":
+            # Create a dictionary to store image information
+            image_info = {
+                "format": img.format,
+                "mode": img.mode,
+                "size": img.size,
+                "data": img.tobytes().decode("latin1"),  # Convert bytes to string
+            }
+
+            # Convert dictionary to JSON
+            json_str = json.dumps(image_info)
+            return json_str
+
+        return img
 
     def draw_faces_on_image(self, image_file, face_locations):
         image = self.image_viewer.display_faces(image_file, face_locations)
