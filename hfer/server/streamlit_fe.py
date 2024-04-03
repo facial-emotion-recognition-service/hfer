@@ -5,6 +5,7 @@ from hfer.server.app_config_provider import AppConfigProvider
 import os
 from PIL import Image
 from io import BytesIO
+import pandas as pd
 
 st.title("Human Facial Emotion Recognizer")
 
@@ -34,6 +35,9 @@ if image_file is not None:
     st.header(
         f'{len(response_json)} face{"" if len(response_json) == 1 else "s"} detected.'
     )
+
+    faces_dict = {"apps": []}
+
     for face_image_file in response_json:
         response = requests.get(
             url="http://127.0.0.1:8000/emotions_from_image",
@@ -53,7 +57,19 @@ if image_file is not None:
         image_info = json.loads(json_str)
         img_data = image_info["data"].encode("latin1")
         img = Image.frombytes(image_info["mode"], image_info["size"], img_data)
-
+        faces_dict["apps"].append(img)
         st.image(img)
         for l, p in top_three.items():
             st.write(f"{l.title()}: Probability: " + str(round(p * 100, 1)) + "%")
+
+    print(faces_dict)
+    faces_df = pd.DataFrame(faces_dict)
+    st.data_editor(
+        faces_dict,
+        column_config={
+            "apps": st.column_config.ImageColumn(
+                "Preview Image", help="Streamlit app preview screenshots"
+            )
+        },
+        hide_index=True,
+    )
