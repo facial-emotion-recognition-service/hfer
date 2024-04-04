@@ -1,11 +1,13 @@
-import streamlit as st
 import json
-import requests
-from hfer.server.app_config_provider import AppConfigProvider
 import os
-from PIL import Image
 from io import BytesIO
+
 import pandas as pd
+import requests
+import streamlit as st
+from PIL import Image
+
+from hfer.server.app_config_provider import AppConfigProvider
 
 st.title("Human Facial Emotion Recognizer")
 
@@ -25,7 +27,9 @@ if image_file is not None:
     payload = {"image_file": (image_file.name, file_content)}
 
     ## Upload the file and save it to the back-end specified location
-    response = requests.post(url="http://127.0.0.1:8000/upload_image", files=payload)
+    response = requests.post(
+        url="http://127.0.0.1:8000/upload_image", files=payload
+    )
 
     response = requests.get(
         url="http://127.0.0.1:8000/faces_from_image",
@@ -60,7 +64,9 @@ if image_file is not None:
         faces_dict["apps"].append(img)
         st.image(img)
         for l, p in top_three.items():
-            st.write(f"{l.title()}: Probability: " + str(round(p * 100, 1)) + "%")
+            st.write(
+                f"{l.title()}: Probability: " + str(round(p * 100, 1)) + "%"
+            )
 
     print(faces_dict)
     faces_df = pd.DataFrame(faces_dict)

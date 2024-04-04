@@ -1,11 +1,12 @@
 import json
+from os import makedirs, path
 from pathlib import Path
+
 from PIL import Image
 
-from hfer.core.predictors import Predictor
 from hfer.core.extractor import Extractor
 from hfer.core.image_viewer import ImageViewer
-
+from hfer.core.predictors import Predictor
 
 ## TO DO Roll app config provider into app_logic
 ## TO DO roll model config provider into core.model??
@@ -45,6 +46,8 @@ class AppLogic:
         result = self.extractor.extract_faces(img_path)
 
         save_dir = Path(self.image_input_dir, "extracted")
+        if not path.exists(save_dir):
+            makedirs(save_dir)
         image_stem = Path(image_file).stem
 
         img = Image.open(img_path)
@@ -72,7 +75,9 @@ class AppLogic:
                 "format": img.format,
                 "mode": img.mode,
                 "size": img.size,
-                "data": img.tobytes().decode("latin1"),  # Convert bytes to string
+                "data": img.tobytes().decode(
+                    "latin1"
+                ),  # Convert bytes to string
             }
 
             # Convert dictionary to JSON
@@ -82,5 +87,4 @@ class AppLogic:
         return img
 
     def draw_faces_on_image(self, image_file, face_locations):
-        image = self.image_viewer.display_faces(image_file, face_locations)
-        return image
+        self.image_viewer.display_faces(image_file, face_locations)

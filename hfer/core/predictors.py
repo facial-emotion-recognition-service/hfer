@@ -3,7 +3,8 @@
 Provides an API for getting various types of pre-formatted predictions from the
 underlying model for various types of input data.
 """
-import hfer.core.model as model
+
+from hfer.core import model
 
 
 class Predictor:

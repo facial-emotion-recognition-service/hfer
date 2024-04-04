@@ -1,18 +1,13 @@
-from os import path
+from os import makedirs, path
+
+from fastapi import FastAPI, UploadFile
+from fastapi.middleware.cors import CORSMiddleware
 
 from hfer.server.app_config_provider import AppConfigProvider
 from hfer.server.app_logic import AppLogic
 from hfer.server.model_config_provider import ModelConfigProvider
 
-from fastapi import FastAPI, UploadFile
-from fastapi.middleware.cors import CORSMiddleware
-
 app = FastAPI()
-
-## streamlit run hfer/server/streamlit_fe.py
-## run in hfer
-## uvicorn hfer.server.main_server:app --reload
-## run in hfer/hfer
 
 # Allowing all middleware is optional, but good practice for dev purposes
 app.add_middleware(
@@ -42,13 +37,17 @@ def index():
 
 @app.post("/upload_image")
 def uploadImage(image_file: UploadFile, sub_folder: str = "raw"):
-    file_location = path.join(
-        app.state.hfer.image_input_dir, sub_folder, image_file.filename
-    )
+    save_dir = path.join(app.state.hfer.image_input_dir, sub_folder)
+    if not path.exists(save_dir):
+        makedirs(save_dir)
+
+    file_location = path.join(save_dir, image_file.filename)
 
     with open(file_location, "wb") as f:
         f.write(image_file.file.read())
-    return {"INFO": f"File '{image_file.filename}' saved to your {file_location}."}
+    return {
+        "INFO": f"File '{image_file.filename}' saved to your {file_location}."
+    }
 
 
 @app.get("/image")

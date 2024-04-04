@@ -3,6 +3,7 @@
 Provides API for interacting with the trained model, including loading and
 preprocessing images, and making predictions.
 """
+
 import os
 
 import numpy as np
@@ -24,7 +25,9 @@ def preprocess_file(img_path):
     Returns:
         A numpy array containing the preprocessed image.
     """
-    img = tf.keras.preprocessing.image.load_img(img_path, target_size=(224, 224))
+    img = tf.keras.preprocessing.image.load_img(
+        img_path, target_size=(224, 224)
+    )
     img_array = tf.keras.preprocessing.image.img_to_array(img)
     img_array_preprocessed = preprocess(img_array)
 
