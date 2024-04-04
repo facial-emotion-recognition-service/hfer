@@ -1,20 +1,16 @@
 import json
 import os
-from io import BytesIO
 
 import pandas as pd
 import requests
 import streamlit as st
 from PIL import Image
 
-from hfer.server.app_config_provider import AppConfigProvider
-
 st.title("Human Facial Emotion Recognizer")
 
 st.write("")
 st.write(
-    "Upload an image. This app will \
-    find the faces and identify the emotions."
+    "Upload an image. This app will find the faces and identify the emotions."
 )
 
 st.header("Try it out!")
@@ -28,12 +24,13 @@ if image_file is not None:
 
     ## Upload the file and save it to the back-end specified location
     response = requests.post(
-        url="http://127.0.0.1:8000/upload_image", files=payload
+        url="http://127.0.0.1:8000/upload_image", files=payload, timeout=10
     )
 
     response = requests.get(
         url="http://127.0.0.1:8000/faces_from_image",
         params={"image_path": os.path.join("raw", image_file.name)},
+        timeout=10,
     )
     response_json = response.json()
     st.header(
@@ -46,16 +43,20 @@ if image_file is not None:
         response = requests.get(
             url="http://127.0.0.1:8000/emotions_from_image",
             params={"image_path": os.path.join("extracted", face_image_file)},
+            timeout=10,
         )
         predictions = response.json()
 
         ## put in nice table
 
-        top_three = dict(sorted(predictions.items(), key=lambda x: -x[1])[:3])
+        top_three = dict(
+            sorted(predictions.items(), key=lambda x: x[1], reverse=True)[:3]
+        )
 
         response = requests.get(
             url="http://127.0.0.1:8000/image",
             params={"image_path": os.path.join("extracted", face_image_file)},
+            timeout=10,
         )
         json_str = response.json()
         image_info = json.loads(json_str)
