@@ -37,7 +37,7 @@ if image_file is not None:
         f'{len(response_json)} face{"" if len(response_json) == 1 else "s"} detected.'
     )
 
-    faces_dict = {"apps": []}
+    faces_dict = {"faces": []}
 
     for face_image_file in response_json:
         response = requests.get(
@@ -62,7 +62,7 @@ if image_file is not None:
         image_info = json.loads(json_str)
         img_data = image_info["data"].encode("latin1")
         img = Image.frombytes(image_info["mode"], image_info["size"], img_data)
-        faces_dict["apps"].append(img)
+        faces_dict["faces"].append(img)
         st.image(img)
         for l, p in top_three.items():
             st.write(
@@ -74,7 +74,7 @@ if image_file is not None:
     st.data_editor(
         faces_dict,
         column_config={
-            "apps": st.column_config.ImageColumn(
+            "faces": st.column_config.ImageColumn(
                 "Preview Image", help="Streamlit app preview screenshots"
             )
         },
