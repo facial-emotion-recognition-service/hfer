@@ -67,7 +67,6 @@ class AppLogic:
     def get_image(self, face_image_name, _type=None):
         ## Consider using this and passing this around instead of the image path
         img_path = Path(self.image_input_dir, face_image_name)
-        print(f"img path: {img_path}")
         img = Image.open(img_path)
         if _type == "json":
             # Create a dictionary to store image information
