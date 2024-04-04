@@ -1,10 +1,28 @@
+import base64
 import json
 import os
+from io import BytesIO
 
-import pandas as pd
 import requests
 import streamlit as st
 from PIL import Image
+
+
+def get_image_data_uri(image: Image.Image):
+    """
+    Converts an image to a data URI in JPEG format.
+
+    Parameters:
+    - img (PIL.Image.Image): The image to be converted.
+
+    Returns:
+    - str: The image data URI in JPEG format.
+    """
+    buffered = BytesIO()
+    image.save(buffered, format="JPEG")
+    img_str = base64.b64encode(buffered.getvalue()).decode()
+    return "data:image/jpeg;base64," + img_str
+
 
 st.title("Human Facial Emotion Recognizer")
 
@@ -37,9 +55,15 @@ if image_file is not None:
         f'{len(response_json)} face{"" if len(response_json) == 1 else "s"} detected.'
     )
 
-    faces_dict = {"faces": []}
+    faces = []
 
-    for face_image_file in response_json:
+    table = "| Face | Emotion Predictions (Probability) |"
+    table += (
+        "\n| --- | --- |\n"
+        if len(response_json) == 1
+        else " Face | Emotion Predictions (Probability) |\n| --- | --- | --- | --- |\n"
+    )
+    for i, face_image_file in enumerate(response_json):
         response = requests.get(
             url="http://127.0.0.1:8000/emotions_from_image",
             params={"image_path": os.path.join("extracted", face_image_file)},
@@ -62,21 +86,17 @@ if image_file is not None:
         image_info = json.loads(json_str)
         img_data = image_info["data"].encode("latin1")
         img = Image.frombytes(image_info["mode"], image_info["size"], img_data)
-        faces_dict["faces"].append(img)
-        st.image(img)
-        for l, p in top_three.items():
-            st.write(
-                f"{l.title()}: Probability: " + str(round(p * 100, 1)) + "%"
-            )
+        faces.append(img)
 
-    print(faces_dict)
-    faces_df = pd.DataFrame(faces_dict)
-    st.data_editor(
-        faces_dict,
-        column_config={
-            "faces": st.column_config.ImageColumn(
-                "Preview Image", help="Streamlit app preview screenshots"
-            )
-        },
-        hide_index=True,
-    )
+        # Add image to the table
+        img_data_uri = get_image_data_uri(img)
+        table += f"<img src='{img_data_uri}' width='50'> | "
+
+        # Add predictions to the table
+        for l, p in top_three.items():
+            table += f"{l.title()} (" + str(round(p * 100, 1)) + "%)<br>"
+
+        table += " |\n" if i % 2 == 1 else " | "
+
+    # Display the table
+    st.markdown(table, unsafe_allow_html=True)
