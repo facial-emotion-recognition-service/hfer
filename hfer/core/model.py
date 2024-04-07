@@ -49,7 +49,7 @@ def preprocess(face_image):
         A numpy array containing the preprocessed image.
     """
     img_array = np.expand_dims(face_image, axis=0)
-    img_array = tf.keras.applications.vgg16.preprocess_input(img_array)
+    img_array = tf.keras.applications.densenet.preprocess_input(img_array)
 
     return img_array
 
