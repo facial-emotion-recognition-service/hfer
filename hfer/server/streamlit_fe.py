@@ -55,8 +55,6 @@ if image_file is not None:
         f'{len(response_json)} face{"" if len(response_json) == 1 else "s"} detected.'
     )
 
-    faces = []
-
     table = "| Face | Emotion Predictions (Probability) |"
     table += (
         "\n| --- | --- |\n"
@@ -86,7 +84,6 @@ if image_file is not None:
         image_info = json.loads(json_str)
         img_data = image_info["data"].encode("latin1")
         img = Image.frombytes(image_info["mode"], image_info["size"], img_data)
-        faces.append(img)
 
         # Add image to the table
         img_data_uri = get_image_data_uri(img)
