@@ -25,9 +25,7 @@ def preprocess_file(img_path):
     Returns:
         A numpy array containing the preprocessed image.
     """
-    img = tf.keras.preprocessing.image.load_img(
-        img_path, target_size=(224, 224)
-    )
+    img = tf.keras.preprocessing.image.load_img(img_path, target_size=(224, 224))
     img_array = tf.keras.preprocessing.image.img_to_array(img)
     img_array_preprocessed = preprocess(img_array)
 
@@ -88,4 +86,4 @@ class Model:
                 print(f"\nNo model found in GCS bucket {bucket_name}")
                 return None
 
-        return tf.keras.models.load_model(model_path, compile=True)
+        return tf.keras.models.load_model(model_path, compile=False)

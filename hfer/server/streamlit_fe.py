@@ -27,9 +27,7 @@ def get_image_data_uri(image: Image.Image):
 st.title("Human Facial Emotion Recognizer")
 
 st.write("")
-st.write(
-    "Upload an image. This app will find the faces and identify the emotions."
-)
+st.write("Upload an image. This app will find the faces and identify the emotions.")
 
 st.header("Try it out!")
 image_file = st.file_uploader("Upload an image of a face", type=["png", "jpg"])
@@ -38,13 +36,16 @@ image_file = st.file_uploader("Upload an image of a face", type=["png", "jpg"])
 if image_file is not None:
     file_content = image_file.read()
     st.image(file_content, caption="Uploaded image")
-    payload = {"image_file": (image_file.name, file_content)}
+    payload = {"image": file_content, "top_n": 3, 'include_coordinates_in_results' = False}
 
     ## Upload the file and save it to the back-end specified location
     response = requests.post(
         url="http://127.0.0.1:8000/upload_image", files=payload, timeout=10
     )
 
+    ## Currently returns each face as a binary object
+    ## If we refactor to the api should look like:
+    ## (image, n_prediction) -> ((tuple of coords), (dict of predicts))
     response = requests.get(
         url="http://127.0.0.1:8000/faces_from_image",
         params={"image_path": os.path.join("raw", image_file.name)},
