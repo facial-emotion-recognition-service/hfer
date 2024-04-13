@@ -21,4 +21,4 @@ dist/
 volume/**
 
 # Docker
-docker_volume/
+docker_volume/**
