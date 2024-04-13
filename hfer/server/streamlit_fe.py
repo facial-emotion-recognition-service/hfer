@@ -36,7 +36,11 @@ image_file = st.file_uploader("Upload an image of a face", type=["png", "jpg"])
 if image_file is not None:
     file_content = image_file.read()
     st.image(file_content, caption="Uploaded image")
-    payload = {"image": file_content, "top_n": 3, 'include_coordinates_in_results' = False}
+    payload = {
+        "image": file_content,
+        "top_n": 3,
+        "include_coordinates_in_results": False,
+    }
 
     ## Upload the file and save it to the back-end specified location
     response = requests.post(

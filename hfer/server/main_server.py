@@ -36,18 +36,17 @@ def index():
 
 
 @app.post("/upload_image")
-def uploadImage(image_file: UploadFile, sub_folder: str = "raw"):
-    save_dir = path.join(app.state.hfer.image_input_dir, sub_folder)
-    if not path.exists(save_dir):
-        makedirs(save_dir)
+def uploadImage(image: UploadFile, top_n: int = 3, sub_folder: str = "raw"):
+    ## get the image
+    img = image.read()
+    ## conver this to np array
+    ## image = numpy.array(Image.open(io.BytesIO(image_bytes)))
 
-    file_location = path.join(save_dir, image_file.filename)
+    ##
+    faces = app.state.hfer.get_faces_from_image(image)
+    for face in faces:
+    app.state.hfer.get_emotions_form_image(image, top_n)
 
-    with open(file_location, "wb") as f:
-        f.write(image_file.file.read())
-    return {
-        "INFO": f"File '{image_file.filename}' saved to your {file_location}."
-    }
 
 
 @app.get("/image")
