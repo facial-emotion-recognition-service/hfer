@@ -19,6 +19,7 @@ dist/
 # Models & Data
 *.csv
 volume/**
+**/raw_data_**/
 
 # Docker
 docker_volume/**
