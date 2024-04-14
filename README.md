@@ -36,8 +36,10 @@ Documentation for the API endpoints. Open question: Should these be in a separat
 
 ## Training Data
 We trained our model on a subset of the Real-world Affective Faces Database (RAF-DB) data set with around 15,000 faces each labeled with a single emotion from this list of seven emotions: surprise, fear, disgust, happiness, anger, sadness, and neutral. We used 80% of the consolidated and randomized data for training, 10% for validation and 10% for testing.  
+
 As can be seen in the chart below, the data is heavily skewed. We have not yet tried any techniques (e.g. augmentation, under/over-sampling) for balancing the classes labels.  
 ![Data Imbalance](doc/img/imbalance.png)  
+
 See [here](https://paperswithcode.com/dataset/raf-db) and [here](https://www.kaggle.com/datasets/shuvoalok/raf-db-dataset/data) for further information about the original dataset.
 
 ## Architecture
@@ -63,8 +65,8 @@ Streamlit
 </details>
 
 ## Model Performance
-The model reached an accuracy score of **~82.5% on the test set** and ~85% on the validation set:
-![Training Curves](doc/img/training_curves.png)
+The model reached an accuracy score of **~82.5% on the test set** and ~85% on the validation set:  
+![Training Curves](doc/img/training_curves.png)  
 
 The confusion matrix (below) shows the breakdown of precision, recall and F1 scores per class label. Not surprisingly, the model performs relatively poorly on "disgust" and "fear", two classes of emotions for which it has not encountered as many examples as the other labels. (Although it performs much better on "anger" which had about as many training examples as "disgust".)  
 ```
