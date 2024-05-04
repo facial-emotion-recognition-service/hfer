@@ -1,8 +1,10 @@
 import json
-from os import makedirs, path
 from pathlib import Path
+from io import BytesIO
+import uuid
 
 from PIL import Image
+import numpy as np
 
 from hfer.core.extractor import Extractor
 from hfer.core.image_viewer import ImageViewer
@@ -28,41 +30,27 @@ class AppLogic:
         self.image_viewer = ImageViewer()
         self.image_input_dir = Path(image_input_dir)
         self.json_output_dir = Path(json_output_dir)
+        self.faces_dict = {}
 
-    def get_face_emotions_from_file(self, face_image_name, top_n, ret):
-        img_path = Path(self.image_input_dir, face_image_name)
-        result = self.predictor.get_face_image_emotions(img_path, top_n, ret)
-
-        json_str = json.dumps(result, indent=4)
-        json_filename = img_path.stem + ".json"
-        json_file_path = Path(self.json_output_dir, json_filename)
-        with open(json_file_path, "w") as f:
-            f.write(json_str)
-
+    def get_face_emotions_from_image(self, image: np.array, top_n=3, ret="text"):
+        result = self.predictor.get_face_image_emotions(image, top_n, ret)
         return result
 
-    def get_faces_from_file(self, image_file):
-        img_path = Path(self.image_input_dir, image_file)
-        result = self.extractor.extract_faces(img_path)
+    def get_faces_from_image(self, image: np.array):
 
-        save_dir = Path(self.image_input_dir, "extracted")
-        if not path.exists(save_dir):
-            makedirs(save_dir)
-        image_stem = Path(image_file).stem
+        result = self.extractor.extract_faces(image)
+        face_ids = []
 
-        img = Image.open(img_path)
-        face_image_files = []
-
-        for idx, face_coords in enumerate(result):
+        for face_coords in result:
             top, right, bottom, left = face_coords
-            crop_pic = img.crop((left, top, right, bottom))
-            image_file = image_stem + "_" + str(idx) + ".jpg"
-            save_path = Path(save_dir, image_file)
-            crop_pic.save(save_path)
+            crop_pic = image[top:bottom, left:right]
 
-            face_image_files.append(image_file)
+            face_id = uuid.uuid4().hex
+            face_ids.append(face_id)
 
-        return face_image_files
+            self.faces_dict[face_id] = (crop_pic, face_coords)
+
+        return face_ids
 
     def get_image(self, face_image_name, _type=None):
         ## Consider using this and passing this around instead of the image path
@@ -74,9 +62,7 @@ class AppLogic:
                 "format": img.format,
                 "mode": img.mode,
                 "size": img.size,
-                "data": img.tobytes().decode(
-                    "latin1"
-                ),  # Convert bytes to string
+                "data": img.tobytes().decode("latin1"),  # Convert bytes to string
             }
 
             # Convert dictionary to JSON
@@ -85,5 +71,23 @@ class AppLogic:
 
         return img
 
-    def draw_faces_on_image(self, image_file, face_locations):
-        self.image_viewer.display_faces(image_file, face_locations)
+    def get_annotated_image(self, image, face_ids):
+        face_coords = [self.faces_dict[face_id][1] for face_id in face_ids]
+        annotated_image = self.image_viewer.display_faces(image, face_coords)
+        return annotated_image
+
+    def convert_upload_to_array(self, image) -> np.array:
+        image = BytesIO(image.file.read())
+        image = Image.open(image)
+        image = np.array(image)
+        return image
+
+    def convert_array_to_base64(self, image: np.array) -> str:
+        image = (
+            Image.fromarray(np.uint8(image)).convert("RGB").tobytes().decode("latin1")
+        )
+        return image
+
+    def get_image_from_id(self, face_id) -> np.array:
+        image = self.faces_dict.get(face_id)[0]
+        return image

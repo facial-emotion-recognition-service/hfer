@@ -4,17 +4,15 @@ Provides API for interacting with the trained model, including loading and
 preprocessing images, and making predictions.
 """
 
-import os
-
 import numpy as np
 import tensorflow as tf
 from google.cloud import storage
 
 
-def preprocess_file(img_path):
-    """Loads and preprocesses an image from the full path to the file.
+def preprocess_image(image: np.array) -> np.array:
+    """Preprocesses an image.
 
-    Given the full path to an image file, loads the image, resizes it to the
+    Given an np.array, resizes it to the
     expected input size of the pretrained model, and preprocesses it to the
     format expected by the model (scaling, mean subtraction, RGB to BGR,
     etc. as applicable).
@@ -25,11 +23,11 @@ def preprocess_file(img_path):
     Returns:
         A numpy array containing the preprocessed image.
     """
-    img = tf.keras.preprocessing.image.load_img(img_path, target_size=(224, 224))
-    img_array = tf.keras.preprocessing.image.img_to_array(img)
-    img_array_preprocessed = preprocess(img_array)
 
-    return img_array_preprocessed
+    image = tf.keras.preprocessing.image.array_to_img(image).resize((224, 224))
+    image_preprocessed = preprocess(tf.keras.preprocessing.image.img_to_array(image))
+
+    return image_preprocessed
 
 
 def preprocess(face_image):

@@ -35,30 +35,26 @@ image_file = st.file_uploader("Upload an image of a face", type=["png", "jpg"])
 
 if image_file is not None:
     file_content = image_file.read()
-    st.image(file_content, caption="Uploaded image")
-    payload = {
-        "image": file_content,
-        "top_n": 3,
-        "include_coordinates_in_results": False,
-    }
+    payload = {"image": file_content}
 
     ## Upload the file and save it to the back-end specified location
     response = requests.post(
         url="http://127.0.0.1:8000/upload_image", files=payload, timeout=10
     )
 
+    ## I think this is acually just returning a dict, not json
+    response_json = response.json()
+    img_data = response_json["annotated_image"].encode("latin1")
+    ## this was hard coded for testing, should actually pass this back
+    img = Image.frombytes("RGB", (1200, 1355), img_data)
+    st.image(img, caption="Uploaded image")
+
     ## Currently returns each face as a binary object
     ## If we refactor to the api should look like:
     ## (image, n_prediction) -> ((tuple of coords), (dict of predicts))
-    response = requests.get(
-        url="http://127.0.0.1:8000/faces_from_image",
-        params={"image_path": os.path.join("raw", image_file.name)},
-        timeout=10,
-    )
-    response_json = response.json()
-    st.header(
-        f'{len(response_json)} face{"" if len(response_json) == 1 else "s"} detected.'
-    )
+
+    face_ids = response_json["face_ids"]
+    st.header(f'{len(face_ids)} face{"" if len(face_ids) == 1 else "s"} detected.')
 
     table = "| Face | Emotion Predictions (Probability) |"
     table += (
@@ -66,13 +62,14 @@ if image_file is not None:
         if len(response_json) == 1
         else " Face | Emotion Predictions (Probability) |\n| --- | --- | --- | --- |\n"
     )
-    for i, face_image_file in enumerate(response_json):
+    for i, face_id in enumerate(face_ids):
         response = requests.get(
-            url="http://127.0.0.1:8000/emotions_from_image",
-            params={"image_path": os.path.join("extracted", face_image_file)},
+            url="http://127.0.0.1:8000/emotions",
+            params={"face_id": face_id},
             timeout=10,
         )
-        predictions = response.json()
+        response_json = response.json()
+        predictions = response_json["emotions"]
 
         ## put in nice table
 
@@ -80,15 +77,10 @@ if image_file is not None:
             sorted(predictions.items(), key=lambda x: x[1], reverse=True)[:3]
         )
 
-        response = requests.get(
-            url="http://127.0.0.1:8000/image",
-            params={"image_path": os.path.join("extracted", face_image_file)},
-            timeout=10,
-        )
-        json_str = response.json()
-        image_info = json.loads(json_str)
-        img_data = image_info["data"].encode("latin1")
-        img = Image.frombytes(image_info["mode"], image_info["size"], img_data)
+        ## this is currently incorrect and should be fixed, need to store
+        ## image size somehwere and pass that along with the image
+        img_data = response_json["image"].encode("latin1")
+        img = Image.frombytes("RGB", (100, 100), img_data)
 
         # Add image to the table
         img_data_uri = get_image_data_uri(img)

@@ -36,36 +36,25 @@ def index():
 
 
 @app.post("/upload_image")
-def uploadImage(image: UploadFile, top_n: int = 3, sub_folder: str = "raw"):
-    ## get the image
-    img = image.read()
-    ## conver this to np array
-    ## image = numpy.array(Image.open(io.BytesIO(image_bytes)))
+def uploadImage(image: UploadFile):
+    ## Extract faces from image
+    image = app.state.hfer.convert_upload_to_array(image)
+    face_ids = app.state.hfer.get_faces_from_image(image)
 
-    ##
-    faces = app.state.hfer.get_faces_from_image(image)
-    for face in faces:
-    app.state.hfer.get_emotions_form_image(image, top_n)
+    ## Get annotated image
+    annotated_image = app.state.hfer.get_annotated_image(image, face_ids)
+    annotated_image = app.state.hfer.convert_array_to_base64(annotated_image)
 
-
-
-@app.get("/image")
-def getImage(image_path: str):
-    print("get image")
-    json_str = app.state.hfer.get_image(image_path, "json")
-    return json_str
+    json_str = {"face_ids": face_ids, "annotated_image": annotated_image}
+    return json_str  ##(need to convert to base64 str)
 
 
-@app.get("/faces_from_image")
-def getFaceImages(image_path: str):
-    json_str = app.state.hfer.get_faces_from_file(image_path)
-
-    return json_str
-
-
-@app.get("/emotions_from_image")
-def getEmotionsFromImage(image_path: str):
-    # print("Server.getEmotionsFromImage.name = " + face_image_file)
-    json_str = app.state.hfer.get_face_emotions_from_file(image_path, 8, "text")
-    # return HttpResponse("getEmotionsFromImage " + face_image_file)
+@app.get("/emotions")
+def getEmotionsFromImage(face_id: str):
+    face_image = app.state.hfer.get_image_from_id(face_id)
+    ## example shape currently (186, 185, 3)
+    ## ValueError: Input 0 of layer "sequential_1" is incompatible with the layer: expected shape=(None, 224, 224, 3), found shape=(None, 185, 3)
+    emotions = app.state.hfer.get_face_emotions_from_image(face_image)
+    face_image = app.state.hfer.convert_array_to_base64(face_image)
+    json_str = {"image": face_image, "emotions": emotions}
     return json_str
