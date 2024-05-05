@@ -24,6 +24,25 @@ def get_image_data_uri(image: Image.Image):
     return "data:image/jpeg;base64," + img_str
 
 
+def convert_base64_to_pil(image_data) -> Image.Image:
+    """
+    Converts a string represented as a base64 string to a PIL image.
+
+    Parameters:
+    - image_data (dict{'image', 'size'}
+    - 'image' (string): The image to be converted.
+    - 'size' (tuple(int, int)): The size of the image.
+
+    Returns:
+    - img (PIL.Image.Image): The image.
+    """
+
+    image = image_data["image"].encode("latin1")
+    size = image_data["size"]
+    image = Image.frombytes("RGB", (size[1], size[0]), image)
+    return image
+
+
 st.title("Human Facial Emotion Recognizer")
 
 st.write("")
@@ -42,16 +61,10 @@ if image_file is not None:
         url="http://127.0.0.1:8000/upload_image", files=payload, timeout=10
     )
 
-    ## I think this is acually just returning a dict, not json
-    response_json = response.json()
-    img_data = response_json["annotated_image"].encode("latin1")
-    ## this was hard coded for testing, should actually pass this back
-    img = Image.frombytes("RGB", (1200, 1355), img_data)
-    st.image(img, caption="Uploaded image")
+    response_json = json.loads(response.json())
+    img = convert_base64_to_pil(response_json["image"])
 
-    ## Currently returns each face as a binary object
-    ## If we refactor to the api should look like:
-    ## (image, n_prediction) -> ((tuple of coords), (dict of predicts))
+    st.image(img, caption="Uploaded image")
 
     face_ids = response_json["face_ids"]
     st.header(f'{len(face_ids)} face{"" if len(face_ids) == 1 else "s"} detected.')
@@ -68,7 +81,7 @@ if image_file is not None:
             params={"face_id": face_id},
             timeout=10,
         )
-        response_json = response.json()
+        response_json = json.loads(response.json())
         predictions = response_json["emotions"]
 
         ## put in nice table
@@ -79,8 +92,7 @@ if image_file is not None:
 
         ## this is currently incorrect and should be fixed, need to store
         ## image size somehwere and pass that along with the image
-        img_data = response_json["image"].encode("latin1")
-        img = Image.frombytes("RGB", (100, 100), img_data)
+        img = convert_base64_to_pil(response_json["image"])
 
         # Add image to the table
         img_data_uri = get_image_data_uri(img)

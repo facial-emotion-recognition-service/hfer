@@ -1,4 +1,5 @@
 from os import makedirs, path
+import json
 
 from fastapi import FastAPI, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
@@ -42,19 +43,31 @@ def uploadImage(image: UploadFile):
     face_ids = app.state.hfer.get_faces_from_image(image)
 
     ## Get annotated image
-    annotated_image = app.state.hfer.get_annotated_image(image, face_ids)
-    annotated_image = app.state.hfer.convert_array_to_base64(annotated_image)
+    if face_ids:
+        annotated_image = app.state.hfer.get_annotated_image(image, face_ids)
+        annotated_image = app.state.hfer.convert_array_to_base64(annotated_image)
+    else:
+        annotated_image = None
 
-    json_str = {"face_ids": face_ids, "annotated_image": annotated_image}
-    return json_str  ##(need to convert to base64 str)
+    json_str = json.dumps(
+        {
+            "face_ids": face_ids,
+            "image": {"image": annotated_image, "size": image.shape[0:2]},
+        }
+    )
+    return json_str
 
 
 @app.get("/emotions")
 def getEmotionsFromImage(face_id: str):
     face_image = app.state.hfer.get_image_from_id(face_id)
-    ## example shape currently (186, 185, 3)
-    ## ValueError: Input 0 of layer "sequential_1" is incompatible with the layer: expected shape=(None, 224, 224, 3), found shape=(None, 185, 3)
+    size = face_image.shape[0:2]
     emotions = app.state.hfer.get_face_emotions_from_image(face_image)
     face_image = app.state.hfer.convert_array_to_base64(face_image)
-    json_str = {"image": face_image, "emotions": emotions}
+    json_str = json.dumps(
+        {
+            "image": {"image": face_image, "size": size},
+            "emotions": emotions,
+        }
+    )
     return json_str
