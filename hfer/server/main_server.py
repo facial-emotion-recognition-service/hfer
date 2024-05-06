@@ -1,5 +1,5 @@
-from os import makedirs, path
 import json
+from os import makedirs, path
 
 from fastapi import FastAPI, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
@@ -44,14 +44,20 @@ def uploadImage(image: UploadFile):
 
     ## Get annotated image
     if face_ids:
-        annotated_image = app.state.hfer.get_annotated_image(image, face_ids)
-        annotated_image = app.state.hfer.convert_array_to_base64(annotated_image)
+        annotated_image, colors = app.state.hfer.get_annotated_image(
+            image, face_ids
+        )
+        annotated_image = app.state.hfer.convert_array_to_base64(
+            annotated_image
+        )
     else:
-        annotated_image = None
+        annotated_image = app.state.hfer.convert_array_to_base64(image)
+        colors = []
 
     json_str = json.dumps(
         {
             "face_ids": face_ids,
+            "colors": colors,
             "image": {"image": annotated_image, "size": image.shape[0:2]},
         }
     )

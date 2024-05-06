@@ -1,13 +1,13 @@
 import json
-from pathlib import Path
-from io import BytesIO
 import uuid
+from io import BytesIO
+from pathlib import Path
 
-from PIL import Image
 import numpy as np
+from PIL import Image
 
 from hfer.core.extractor import Extractor
-from hfer.core.image_annotater import ImageAnnotater
+from hfer.core.image_annotator import ImageAnnotator
 from hfer.core.predictors import Predictor
 
 ## TO DO Roll app config provider into app_logic
@@ -27,22 +27,27 @@ class AppLogic:
     ):
         self.predictor = Predictor(model_path, config_data, bucket_name)
         self.extractor = Extractor()
-        self.image_annotater = ImageAnnotater()
+        self.image_annotator = ImageAnnotator()
         self.image_input_dir = Path(image_input_dir)
         self.json_output_dir = Path(json_output_dir)
         self.faces_dict = {}
 
-    def get_face_emotions_from_image(self, image: np.array, top_n=3, ret="text"):
+    def get_face_emotions_from_image(
+        self, image: np.array, top_n=3, ret="text"
+    ):
         result = self.predictor.get_face_image_emotions(image, top_n, ret)
         return result
 
     def get_faces_from_image(self, image: np.array):
 
         face_coords = self.extractor.extract_faces(image)
-        # Sort the faces by top value of bounding box.
-        # The height is used to make bands to put the boxes in.
+        # Sort the faces as a human would sort them. (top to bottom, left to right)
+        # The boxes are put in 10 horizontal bands and sorted from left to right.
+        # x[0] and x[3] are the top and left values of the bounding box, respectively.
         height = image.shape[0]
-        face_coords = sorted(face_coords, key=lambda x: (x[0] // (height / 10), x[3]))
+        face_coords = sorted(
+            face_coords, key=lambda x: (x[0] // (height / 10), x[3])
+        )
         face_ids = []
 
         for face_coord in face_coords:
@@ -56,39 +61,27 @@ class AppLogic:
 
         return face_ids
 
-    # def get_image(self, face_image_name, _type=None):
-    #     ## Consider using this and passing this around instead of the image path
-    #     img_path = Path(self.image_input_dir, face_image_name)
-    #     img = Image.open(img_path)
-    #     if _type == "json":
-    #         # Create a dictionary to store image information
-    #         image_info = {
-    #             "format": img.format,
-    #             "mode": img.mode,
-    #             "size": img.size,
-    #             "data": img.tobytes().decode("latin1"),  # Convert bytes to string
-    #         }
-
-    #         # Convert dictionary to JSON
-    #         json_str = json.dumps(image_info)
-    #         return json_str
-
-    #     return img
-
     def get_annotated_image(self, image, face_ids):
         face_coords = [self.faces_dict[face_id][1] for face_id in face_ids]
-        annotated_image = self.image_annotater.annotate_faces(image, face_coords)
-        return annotated_image
+        annotated_image, colors = self.image_annotator.annotate_faces(
+            image, face_coords
+        )
+        return annotated_image, colors
 
     def convert_upload_to_array(self, image) -> np.array:
         image = BytesIO(image.file.read())
         image = Image.open(image)
+        if image.mode != "RGB":
+            image = image.convert("RGB")
         image = np.array(image)
         return image
 
     def convert_array_to_base64(self, image: np.array) -> str:
         image = (
-            Image.fromarray(np.uint8(image)).convert("RGB").tobytes().decode("latin1")
+            Image.fromarray(np.uint8(image))
+            .convert("RGB")
+            .tobytes()
+            .decode("latin1")
         )
         return image
 

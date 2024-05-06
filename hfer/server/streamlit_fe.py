@@ -46,7 +46,9 @@ def convert_base64_to_pil(image_data) -> Image.Image:
 st.title("Human Facial Emotion Recognizer")
 
 st.write("")
-st.write("Upload an image. This app will find the faces and identify the emotions.")
+st.write(
+    "Upload an image. This app will find the faces and identify the emotions."
+)
 
 st.header("Try it out!")
 image_file = st.file_uploader("Upload an image of a face", type=["png", "jpg"])
@@ -56,7 +58,6 @@ if image_file is not None:
     file_content = image_file.read()
     payload = {"image": file_content}
 
-    ## Upload the file and save it to the back-end specified location
     response = requests.post(
         url="http://127.0.0.1:8000/upload_image", files=payload, timeout=10
     )
@@ -67,14 +68,21 @@ if image_file is not None:
     st.image(img, caption="Uploaded image")
 
     face_ids = response_json["face_ids"]
-    st.header(f'{len(face_ids)} face{"" if len(face_ids) == 1 else "s"} detected.')
-
-    table = "| Face | Emotion Predictions (Probability) |"
-    table += (
-        "\n| --- | --- |\n"
-        if len(response_json) == 1
-        else " Face | Emotion Predictions (Probability) |\n| --- | --- | --- | --- |\n"
+    colors = response_json["colors"]
+    st.header(
+        f'{len(face_ids)} face{"" if len(face_ids) == 1 else "s"} detected.'
     )
+
+    # Everything below this line just renders the table of extracted faces and
+    # emotions as a markdown table. Images are inserted in HTML tags.
+    table = ""
+    if face_ids:
+        table += "| Face | Emotion Predictions (Probability) |"
+        table += (
+            "\n| --- | --- |\n"
+            if len(face_ids) == 1
+            else " Face | Emotion Predictions (Probability) |\n| --- | --- | --- | --- |\n"
+        )
     for i, face_id in enumerate(face_ids):
         response = requests.get(
             url="http://127.0.0.1:8000/emotions",
@@ -90,13 +98,13 @@ if image_file is not None:
             sorted(predictions.items(), key=lambda x: x[1], reverse=True)[:3]
         )
 
-        ## this is currently incorrect and should be fixed, need to store
-        ## image size somehwere and pass that along with the image
         img = convert_base64_to_pil(response_json["image"])
 
         # Add image to the table
         img_data_uri = get_image_data_uri(img)
-        table += f"<img src='{img_data_uri}' width='50'> | "
+        table += f"<span alignment='center' style='color:rgb{tuple(colors[i])};'>face{i+1}</span><br>"
+        table += f"<img src='{img_data_uri}' width='50'>"
+        table += " | "
 
         # Add predictions to the table
         for l, p in top_three.items():

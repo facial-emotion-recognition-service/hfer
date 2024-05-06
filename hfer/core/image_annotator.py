@@ -1,10 +1,10 @@
 import colorsys
 
-from PIL import Image, ImageDraw
 import numpy as np
+from PIL import Image, ImageDraw
 
 
-class ImageAnnotater:
+class ImageAnnotator:
     """Class to manage the annotation of the image"""
 
     def __init__(self):
@@ -16,6 +16,7 @@ class ImageAnnotater:
         img_draw = ImageDraw.Draw(image)
         num_faces = len(face_coords)
         colors = self.generate_colors(num_faces)
+        min_height = min(bottom - top for top, _, bottom, _ in face_coords)
 
         for idx in range(num_faces):
             # Draw rectangle
@@ -26,13 +27,18 @@ class ImageAnnotater:
 
             # Annotate face number
             text = "face" + str(idx + 1)
-            text_width = img_draw.textlength(text, font_size=24)
-            text_position = ((left + right - text_width) // 2, top + 10)
-            img_draw.text(text_position, text, fill=color, stroke_width=1, font_size=24)
+            font_size = 16 + min(8, (min_height - 75) // 15)
+            text_width = img_draw.textlength(text, font_size=font_size)
+            rect = [(left, top - font_size), (left + text_width + 2, top)]
+            img_draw.rectangle(rect, fill=color, outline=color, width=2)
+            text_position = (left + 1, top - font_size - 1)
+            img_draw.text(
+                text_position, text, fill="black", font_size=font_size
+            )
 
         # Return the array
         image = np.array(image)
-        return image
+        return (image, colors)
 
     @staticmethod
     def generate_colors(n):
