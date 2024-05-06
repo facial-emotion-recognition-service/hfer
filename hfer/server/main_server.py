@@ -1,3 +1,4 @@
+import json
 from os import makedirs, path
 
 from fastapi import FastAPI, UploadFile
@@ -36,37 +37,43 @@ def index():
 
 
 @app.post("/upload_image")
-def uploadImage(image_file: UploadFile, sub_folder: str = "raw"):
-    save_dir = path.join(app.state.hfer.image_input_dir, sub_folder)
-    if not path.exists(save_dir):
-        makedirs(save_dir)
+def uploadImage(image: UploadFile):
+    ## Extract faces from image
+    image = app.state.hfer.convert_upload_to_array(image)
+    face_ids = app.state.hfer.get_faces_from_image(image)
 
-    file_location = path.join(save_dir, image_file.filename)
+    ## Get annotated image
+    if face_ids:
+        annotated_image, colors = app.state.hfer.get_annotated_image(
+            image, face_ids
+        )
+        annotated_image = app.state.hfer.convert_array_to_base64(
+            annotated_image
+        )
+    else:
+        annotated_image = app.state.hfer.convert_array_to_base64(image)
+        colors = []
 
-    with open(file_location, "wb") as f:
-        f.write(image_file.file.read())
-    return {
-        "INFO": f"File '{image_file.filename}' saved to your {file_location}."
-    }
-
-
-@app.get("/image")
-def getImage(image_path: str):
-    print("get image")
-    json_str = app.state.hfer.get_image(image_path, "json")
+    json_str = json.dumps(
+        {
+            "face_ids": face_ids,
+            "colors": colors,
+            "image": {"image": annotated_image, "size": image.shape[0:2]},
+        }
+    )
     return json_str
 
 
-@app.get("/faces_from_image")
-def getFaceImages(image_path: str):
-    json_str = app.state.hfer.get_faces_from_file(image_path)
-
-    return json_str
-
-
-@app.get("/emotions_from_image")
-def getEmotionsFromImage(image_path: str):
-    # print("Server.getEmotionsFromImage.name = " + face_image_file)
-    json_str = app.state.hfer.get_face_emotions_from_file(image_path, 8, "text")
-    # return HttpResponse("getEmotionsFromImage " + face_image_file)
+@app.get("/emotions")
+def getEmotionsFromImage(face_id: str):
+    face_image = app.state.hfer.get_image_from_id(face_id)
+    size = face_image.shape[0:2]
+    emotions = app.state.hfer.get_face_emotions_from_image(face_image)
+    face_image = app.state.hfer.convert_array_to_base64(face_image)
+    json_str = json.dumps(
+        {
+            "image": {"image": face_image, "size": size},
+            "emotions": emotions,
+        }
+    )
     return json_str

@@ -24,6 +24,25 @@ def get_image_data_uri(image: Image.Image):
     return "data:image/jpeg;base64," + img_str
 
 
+def convert_base64_to_pil(image_data) -> Image.Image:
+    """
+    Converts a string represented as a base64 string to a PIL image.
+
+    Parameters:
+    - image_data (dict{'image', 'size'}
+    - 'image' (string): The image to be converted.
+    - 'size' (tuple(int, int)): The size of the image.
+
+    Returns:
+    - img (PIL.Image.Image): The image.
+    """
+
+    image = image_data["image"].encode("latin1")
+    size = image_data["size"]
+    image = Image.frombytes("RGB", (size[1], size[0]), image)
+    return image
+
+
 st.title("Human Facial Emotion Recognizer")
 
 st.write("")
@@ -37,37 +56,41 @@ image_file = st.file_uploader("Upload an image of a face", type=["png", "jpg"])
 
 if image_file is not None:
     file_content = image_file.read()
-    st.image(file_content, caption="Uploaded image")
-    payload = {"image_file": (image_file.name, file_content)}
+    payload = {"image": file_content}
 
-    ## Upload the file and save it to the back-end specified location
     response = requests.post(
         url="http://127.0.0.1:8000/upload_image", files=payload, timeout=10
     )
 
-    response = requests.get(
-        url="http://127.0.0.1:8000/faces_from_image",
-        params={"image_path": os.path.join("raw", image_file.name)},
-        timeout=10,
-    )
-    response_json = response.json()
+    response_json = json.loads(response.json())
+    img = convert_base64_to_pil(response_json["image"])
+
+    st.image(img, caption="Uploaded image")
+
+    face_ids = response_json["face_ids"]
+    colors = response_json["colors"]
     st.header(
-        f'{len(response_json)} face{"" if len(response_json) == 1 else "s"} detected.'
+        f'{len(face_ids)} face{"" if len(face_ids) == 1 else "s"} detected.'
     )
 
-    table = "| Face | Emotion Predictions (Probability) |"
-    table += (
-        "\n| --- | --- |\n"
-        if len(response_json) == 1
-        else " Face | Emotion Predictions (Probability) |\n| --- | --- | --- | --- |\n"
-    )
-    for i, face_image_file in enumerate(response_json):
+    # Everything below this line just renders the table of extracted faces and
+    # emotions as a markdown table. Images are inserted in HTML tags.
+    table = ""
+    if face_ids:
+        table += "| Face | Emotion Predictions (Probability) |"
+        table += (
+            "\n| --- | --- |\n"
+            if len(face_ids) == 1
+            else " Face | Emotion Predictions (Probability) |\n| --- | --- | --- | --- |\n"
+        )
+    for i, face_id in enumerate(face_ids):
         response = requests.get(
-            url="http://127.0.0.1:8000/emotions_from_image",
-            params={"image_path": os.path.join("extracted", face_image_file)},
+            url="http://127.0.0.1:8000/emotions",
+            params={"face_id": face_id},
             timeout=10,
         )
-        predictions = response.json()
+        response_json = json.loads(response.json())
+        predictions = response_json["emotions"]
 
         ## put in nice table
 
@@ -75,19 +98,13 @@ if image_file is not None:
             sorted(predictions.items(), key=lambda x: x[1], reverse=True)[:3]
         )
 
-        response = requests.get(
-            url="http://127.0.0.1:8000/image",
-            params={"image_path": os.path.join("extracted", face_image_file)},
-            timeout=10,
-        )
-        json_str = response.json()
-        image_info = json.loads(json_str)
-        img_data = image_info["data"].encode("latin1")
-        img = Image.frombytes(image_info["mode"], image_info["size"], img_data)
+        img = convert_base64_to_pil(response_json["image"])
 
         # Add image to the table
         img_data_uri = get_image_data_uri(img)
-        table += f"<img src='{img_data_uri}' width='50'> | "
+        table += f"<span alignment='center' style='color:rgb{tuple(colors[i])};'>face{i+1}</span><br>"
+        table += f"<img src='{img_data_uri}' width='50'>"
+        table += " | "
 
         # Add predictions to the table
         for l, p in top_three.items():
