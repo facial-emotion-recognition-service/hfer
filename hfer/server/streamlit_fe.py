@@ -46,9 +46,7 @@ def convert_base64_to_pil(image_data) -> Image.Image:
 st.title("Human Facial Emotion Recognizer")
 
 st.write("")
-st.write(
-    "Upload an image. This app will find the faces and identify the emotions."
-)
+st.write("Upload an image. This app will find the faces and identify the emotions.")
 
 st.header("Try it out!")
 image_file = st.file_uploader("Upload an image of a face", type=["png", "jpg"])
@@ -69,9 +67,7 @@ if image_file is not None:
 
     face_ids = response_json["face_ids"]
     colors = response_json["colors"]
-    st.header(
-        f'{len(face_ids)} face{"" if len(face_ids) == 1 else "s"} detected.'
-    )
+    st.header(f'{len(face_ids)} face{"" if len(face_ids) == 1 else "s"} detected.')
 
     # Everything below this line just renders the table of extracted faces and
     # emotions as a markdown table. Images are inserted in HTML tags.
@@ -86,7 +82,7 @@ if image_file is not None:
     for i, face_id in enumerate(face_ids):
         response = requests.get(
             url="http://127.0.0.1:8000/emotions",
-            params={"face_id": face_id},
+            params={"face_id": face_id, "include_image": True},
             timeout=10,
         )
         response_json = json.loads(response.json())
