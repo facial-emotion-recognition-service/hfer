@@ -56,7 +56,10 @@ if image_file is not None:
     payload = {"image": file_content}
 
     response = requests.post(
-        url="http://127.0.0.1:8000/upload_image", files=payload, timeout=10
+        # url="http://127.0.0.1:8000/upload_image", files=payload, timeout=10
+        url="http://127.0.0.1:8080/upload_image",
+        files=payload,
+        timeout=10,
     )
 
     response_json = json.loads(response.json())
