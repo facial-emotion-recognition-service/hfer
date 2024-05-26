@@ -23,9 +23,6 @@ app.add_middleware(
 app_config = AppConfigProvider().app_config
 app.state.hfer = AppLogic(
     app_config["model_path"],
-    app_config["image_input_dir"],
-    app_config["json_output_dir"],
-    ModelConfigProvider(app_config["config_path"]).config_data,
     app_config.get("bucket_name"),
 )
 

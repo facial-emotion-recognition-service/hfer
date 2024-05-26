@@ -20,16 +20,11 @@ class AppLogic:
     def __init__(
         self,
         model_path,
-        image_input_dir,
-        json_output_dir,
-        config_data,
         bucket_name,
     ):
-        self.predictor = Predictor(model_path, config_data, bucket_name)
+        self.predictor = Predictor(model_path, bucket_name)
         self.extractor = Extractor()
         self.image_annotator = ImageAnnotator()
-        self.image_input_dir = Path(image_input_dir)
-        self.json_output_dir = Path(json_output_dir)
         self.faces_dict = {}
 
     def get_face_emotions_from_image(self, image: np.array, top_n=3, ret="text"):
