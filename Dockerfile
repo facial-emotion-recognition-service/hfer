@@ -20,5 +20,5 @@ ENV CONFIG_PATH="../config/config.json"
 #ENV BUCKET_NAME="fers-bucket"
 
 EXPOSE 8000
-WORKDIR /hfer/server
-CMD ["python", "main_server.py", "runserver", "0.0.0.0:8000"]
+WORKDIR /hfer/hfer
+CMD uvicorn hfer.server.main_server:app --host 0.0.0.0

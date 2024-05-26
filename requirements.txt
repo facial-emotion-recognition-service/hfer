@@ -9,7 +9,9 @@ google-cloud-storage
 #extraction
 face_recognition
 
-# For the web app
+# For the api
 fastapi
 uvicorn
-streamlit
+
+# For streamlit
+# streamlit
