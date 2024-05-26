@@ -22,4 +22,4 @@ ENV MODEL_PATH="../../model.h5"
 
 EXPOSE 8000
 WORKDIR /hfer/hfer
-CMD uvicorn hfer.server.main_server:app --host 0.0.0.0
+CMD uvicorn hfer.server.main_server:app --host 0.0.0.0 --port 8000

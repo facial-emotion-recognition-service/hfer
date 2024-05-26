@@ -57,7 +57,7 @@ if image_file is not None:
 
     response = requests.post(
         # url="http://127.0.0.1:8000/upload_image", files=payload, timeout=10
-        url="http://127.0.0.1:8080/upload_image",
+        url="http://127.0.0.1:8000/upload_image",
         files=payload,
         timeout=10,
     )
