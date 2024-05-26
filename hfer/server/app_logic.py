@@ -32,9 +32,7 @@ class AppLogic:
         self.json_output_dir = Path(json_output_dir)
         self.faces_dict = {}
 
-    def get_face_emotions_from_image(
-        self, image: np.array, top_n=3, ret="text"
-    ):
+    def get_face_emotions_from_image(self, image: np.array, top_n=3, ret="text"):
         result = self.predictor.get_face_image_emotions(image, top_n, ret)
         return result
 
@@ -45,9 +43,7 @@ class AppLogic:
         # The boxes are put in 10 horizontal bands and sorted from left to right.
         # x[0] and x[3] are the top and left values of the bounding box, respectively.
         height = image.shape[0]
-        face_coords = sorted(
-            face_coords, key=lambda x: (x[0] // (height / 10), x[3])
-        )
+        face_coords = sorted(face_coords, key=lambda x: (x[0] // (height / 10), x[3]))
         face_ids = []
 
         for face_coord in face_coords:
@@ -59,7 +55,7 @@ class AppLogic:
 
             self.faces_dict[face_id] = (crop_pic, face_coord)
 
-        return face_ids
+        return face_ids, face_coords
 
     def get_annotated_image(self, image, face_ids):
         face_coords = [self.faces_dict[face_id][1] for face_id in face_ids]
@@ -78,10 +74,7 @@ class AppLogic:
 
     def convert_array_to_base64(self, image: np.array) -> str:
         image = (
-            Image.fromarray(np.uint8(image))
-            .convert("RGB")
-            .tobytes()
-            .decode("latin1")
+            Image.fromarray(np.uint8(image)).convert("RGB").tobytes().decode("latin1")
         )
         return image
 

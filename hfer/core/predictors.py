@@ -26,17 +26,7 @@ class Predictor:
             A dict mapping the top n emotions to their probabilities.
         """
         image = model.preprocess_image(image)
-        result = self._get_face_emotions(image, top_n, ret)
-
-        return result
-
-    # TODO(https://trello.com/c/p9RyBsxE): Refactor once extraction is done.
-    # This is an "internal" (private, or rather: protected) method put in place
-    # only for compatibility with Nathan's WiP on extraction. To be refactored
-    # and merged with get_face_image_emotions().
-
-    def _get_face_emotions(self, face, top_n=3, ret="text"):
-        predictions = self.model.predict(face)
+        predictions = self.model.predict(image)
         preds_sorted = sorted(predictions, reverse=True)
         preds_sorted_indices = [
             i
