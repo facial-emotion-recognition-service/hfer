@@ -8,8 +8,8 @@ from hfer.core import model
 
 
 class Predictor:
-    def __init__(self, model_path, config_data, bucket_name):
-        self.model = model.Model(model_path, config_data, bucket_name)
+    def __init__(self, model_path, bucket_name):
+        self.model = model.Model(model_path, bucket_name)
 
     def get_face_image_emotions(self, image, top_n=3, ret="text"):
         """Returns the top n emotions for an image of a single, isolated face.

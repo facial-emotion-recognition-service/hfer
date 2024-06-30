@@ -8,6 +8,16 @@ import numpy as np
 import tensorflow as tf
 from google.cloud import storage
 
+LABELS_TEXT2NUM = {
+    "surprise": 0,
+    "fear": 1,
+    "disgust": 2,
+    "happiness": 3,
+    "anger": 4,
+    "sadness": 5,
+    "neutral": 6,
+}
+
 
 def preprocess_image(image: np.array) -> np.array:
     """Preprocesses an image.
@@ -51,9 +61,9 @@ def preprocess(face_image):
 
 
 class Model:
-    def __init__(self, model_path, config_data, bucket_name):
+    def __init__(self, model_path, bucket_name):
         self._model = self.load_model(model_path, bucket_name)
-        self.labels_text2num = config_data["labels_text2num"]
+        self.labels_text2num = LABELS_TEXT2NUM
         self.labels_num2text = {v: k for k, v in self.labels_text2num.items()}
 
     def predict(self, img_array):
