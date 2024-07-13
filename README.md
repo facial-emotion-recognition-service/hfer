@@ -1,50 +1,59 @@
 # Human Facial Emotion Recognition (HFER)
 
 ## Introduction
-HFER is a Python project that leverages a CNN (Convolutional Neural Network) to detect emotions from human faces which are extracted from images uploaded by the user. It can recognize the following seven emotions: surprise, fear, disgust, happiness, anger, sadness, and neutral. This is an example of multiclass image classification, a supervised deep learning algorithm.
+HFER is a Python project that leverages convolutional neural network to detect emotions from human faces which are extracted from images uploaded by a user. It can recognize the following seven emotions: surprise, fear, disgust, happiness, anger, sadness, and neutral. We used multiclass image classification, a type of supervised deep learning algorithm.
 
 ## Usage
+### REST API
+HFER's REST API was written using FastAPI and the container has been deployed on Google Cloud Run which can be accessed [here](https://hfer-api-3s6mpd7w3q-uw.a.run.app/).
+
+**Note:** Cold starts are enabled by default on GCR, so the container may take up to a few minutes to start the first time it is accessed.
+
+#### How to use the API
 <details>
-<summary>TO DO: Link to live ("production") website</summary>
+<summary>❗️❗️❗️ TO DO ❗️❗️❗️</summary>
+Step-by-step guide to using the API and a link to the API documentation once generated
+</details>
 
 ### Web UI
-Once we deploy it, that is.
-
-### REST API
-Documentation for the API endpoints. Open question: Should these be in a separate repo? Probably...
-</details>
+HFER has a web interface written using Streamlit. The code resides in its own separate repo [here](https://github.com/facial-emotion-recognition-service/hfer_front). It is currently deployed [here](https://hfer-farid-nathan.streamlit.app/).
 
 ## Installation (For Development):
 ### Install Locally
 1. Clone the repo.
-2. Download the trained model (a `.h5` or `.keras` file) from the project's shared Google Drive.
-3. Make a new subdirectory named `models` inside the `./volume/` directory and copy the downloaded model file there.
-4. Rename the `.env.sample` file to `.env` and make sure the `MODEL_FILENAME` environment variable is set correctly. You should not have to change anything else if you have followed the above steps correctly.
-5. From the `hfer` directory run:
+2. Download the trained model file [here](https://drive.google.com/file/d/1EXQdc-XM1vzkO4KLeSbUMfJk9w-rvehG/view?usp=drive_link) and copy it into the `models` directory.
+3. Install the `hfer` package in editable mode with:
    ``` bash
-   streamlit run hfer/server/streamlit_fe.py
+   pip install -e .
    ```
-6. From the `hfer/hfer` directory run:
+4. From the `hfer/hfer` directory run:
    ``` bash
    uvicorn hfer.server.main_server:app --reload
    ```
-
 ### Install Using Docker
-<details>
-<summary>TO DO</summary>
-</details>
+1. Follow steps 1-2 above.
+2. Build the docker image with:
+   ``` bash
+   docker build -t hfer-api .
+   ```
+3. Run the container with:
+   ``` bash
+   docker run -p 8000:8000 hfer-api
+   ```
+
+> **Note:** If you would like to deploy the front-end locally as well, follow the instructions in the [`hfer_front` repo](https://github.com/facial-emotion-recognition-service/hfer_front)'s README.
 
 ## Training Data
-We trained our model on a subset of the Real-world Affective Faces Database (RAF-DB) data set with around 15,000 faces each labeled with a single emotion from this list of seven emotions: surprise, fear, disgust, happiness, anger, sadness, and neutral. We used 80% of the consolidated and randomized data for training, 10% for validation and 10% for testing.  
+We trained our model on a subset of the Real-world Affective Faces Database (RAF-DB) data set with around 15,000 faces each labeled with a single emotion from this list of seven emotions: surprise, fear, disgust, happiness, anger, sadness, and neutral. We used 80% of the consolidated and randomized data for training, 10% for validation and 10% for testing.
 
-As can be seen in the chart below, the data is heavily skewed. We have not yet tried any techniques (e.g. augmentation, under/over-sampling) for balancing the classes labels.  
-![Data Imbalance](doc/img/imbalance.png)  
+As can be seen in the chart below, the data is heavily skewed. We have not yet tried any techniques (e.g. augmentation, under/over-sampling) for balancing the classes labels.
+![Data Imbalance](doc/img/imbalance.png)
 
 See [here](https://paperswithcode.com/dataset/raf-db) and [here](https://www.kaggle.com/datasets/shuvoalok/raf-db-dataset/data) for further information about the original dataset.
 
 ## Architecture
 ### The Machine Learning Model
-We use TensorFlow Keras to fine-tune a pre-trained [DenseNet121](https://keras.io/api/applications/densenet/) with Imagenet weights. We use the pretrained weights as 'initial weights' and do not "freeze" any layers. We add a "head" with two fully-connected hidden layers (with 512 and 256 neurons respectively, and ReLU activation functions). We also utilize L2 regularizers and dropout regularization layers in both hidden layers. The entire model has roughly 32.8 million trainable parameters. Finally, we use [`ReduceLROnPlateau`](https://keras.io/api/callbacks/reduce_lr_on_plateau/) and an [`EarlyStopping`](https://keras.io/api/callbacks/early_stopping/) callbacks during training.  
+We use TensorFlow Keras to fine-tune a pre-trained [DenseNet121](https://keras.io/api/applications/densenet/) with Imagenet weights. We use the pretrained weights as 'initial weights' and do not "freeze" any layers. We add a "head" with two fully-connected hidden layers (with 512 and 256 neurons respectively, and ReLU activation functions). We also utilize L2 regularizers and dropout regularization layers in both hidden layers. The entire model has roughly 32.8 million trainable parameters. Finally, we use [`ReduceLROnPlateau`](https://keras.io/api/callbacks/reduce_lr_on_plateau/) and an [`EarlyStopping`](https://keras.io/api/callbacks/early_stopping/) callbacks during training.
 
 Before arriving at the above architecture (our best-performing to date), we experimented quite a lot with:
 - various pre-trained models (VGG-16, ResNets, DenseNets),
@@ -65,10 +74,10 @@ Streamlit
 </details>
 
 ## Model Performance
-The model reached an accuracy score of **~82.5% on the test set** and ~85% on the validation set:  
-![Training Curves](doc/img/training_curves.png)  
+The model reached an accuracy score of **~82.5% on the test set** and ~85% on the validation set:
+![Training Curves](doc/img/training_curves.png)
 
-The confusion matrix (below) shows the breakdown of precision, recall and F1 scores per class label. Not surprisingly, the model performs relatively poorly on "disgust" and "fear", two classes of emotions for which it has not encountered as many examples as the other labels. (Although it performs much better on "anger" which had about as many training examples as "disgust".)  
+The confusion matrix (below) shows the breakdown of precision, recall and F1 scores per class label. Not surprisingly, the model performs relatively poorly on "disgust" and "fear", two classes of emotions for which it has not encountered as many examples as the other labels. (Although it performs much better on "anger" which had about as many training examples as "disgust".)
 ```
               precision    recall  f1-score   support
 
