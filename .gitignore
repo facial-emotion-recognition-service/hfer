@@ -19,7 +19,8 @@ dist/
 # Models & Data
 *.csv
 **/raw_data_**/
-models/
+/models/**
+!/models/.gitkeep
 
 # Docker
 docker_volume/**
