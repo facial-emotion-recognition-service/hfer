@@ -1,7 +1,7 @@
 # Human Facial Emotion Recognition (HFER)
 
 ## Introduction
-HFER is a Python project that leverages convolutional neural networks to detect emotions from human faces which are extracted from images uploaded by a user. It can recognize the following seven emotions: surprise, fear, disgust, happiness, anger, sadness, and neutral. We used multiclass image classification, a type of supervised deep learning algorithm. For further details on the model, see the project's main [README](https://github.com/facial-emotion-recognition-service)
+HFER is a Python project that leverages convolutional neural networks to detect emotions from human faces which are extracted from images uploaded by a user. It can recognize the following seven emotions: surprise, fear, disgust, happiness, anger, sadness, and neutral. We used multiclass image classification, a type of supervised deep learning algorithm. This is the code repo for the back-end implementation. For further details on the model, see the project's main [README](https://github.com/facial-emotion-recognition-service).
 
 ## Usage
 ### REST API
