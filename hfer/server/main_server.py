@@ -4,9 +4,8 @@ from os import makedirs, path
 from fastapi import FastAPI, UploadFile, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
-from hfer.server.app_config_provider import AppConfigProvider
+from hfer.server.config_provider import ConfigProvider
 from hfer.server.app_logic import AppLogic
-from hfer.server.model_config_provider import ModelConfigProvider
 
 app = FastAPI()
 
@@ -20,13 +19,11 @@ app.add_middleware(
 )
 
 
-app_config = AppConfigProvider().app_config
+config = ConfigProvider().config
 app.state.hfer = AppLogic(
-    app_config["model_path"],
-    app_config["image_input_dir"],
-    app_config["json_output_dir"],
-    ModelConfigProvider(app_config["config_path"]).config_data,
-    app_config.get("bucket_name"),
+    config["model_path"],
+    config["labels"],
+    config.get("bucket_name"),
 )
 
 

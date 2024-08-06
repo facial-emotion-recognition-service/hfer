@@ -2,6 +2,7 @@ import base64
 import json
 import os
 from io import BytesIO
+import time
 
 import requests
 import streamlit as st
@@ -55,7 +56,6 @@ image_file = st.file_uploader("Upload an image of a face", type=["png", "jpg"])
 if image_file is not None:
     file_content = image_file.read()
     payload = {"image": file_content}
-
     response = requests.post(
         url="http://127.0.0.1:8000/upload_image", files=payload, timeout=10
     )
@@ -68,6 +68,7 @@ if image_file is not None:
     face_ids = response_json["face_ids"]
     colors = response_json["colors"]
     st.header(f'{len(face_ids)} face{"" if len(face_ids) == 1 else "s"} detected.')
+    print("sleeping")
 
     # Everything below this line just renders the table of extracted faces and
     # emotions as a markdown table. Images are inserted in HTML tags.
