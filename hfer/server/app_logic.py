@@ -46,7 +46,7 @@ class AppLogic:
     def get_faces_from_image(self, image: np.array):
         """
         Detects faces in an image. Detected faces will be persisted
-        in RAM for up to 30 minutes.
+        in RAM for up to 5 minutes.
 
         Args:
             image (np.array)
@@ -106,7 +106,6 @@ class AppLogic:
         Returns:
             image: A resized np.array.
         """
-
         length, width = image.size[0], image.size[1]
         max_dim = max(length, width)
         if max_dim > 1000:

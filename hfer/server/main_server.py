@@ -38,19 +38,68 @@ def uploadImage(
     include_annotation: bool = True,
     include_bounding_box_coords: bool = True,
 ):
-    """API that takes an image and extracts the faces from it.
+    """
+    API for extracting faces from an image.
 
-    Retrieves the faces as UUIDs in temporary storage.
+    This API processes an input image, detects faces, and returns the results in various formats.
+    Faces are identified by UUIDs and can optionally include annotated images and bounding box coordinates.
 
     Args:
-        image: Image to be processed.
-        include_annotated: Include the annotated image in the response.
-        include_bounding_box_coords: Includes the bounding box of the faces in the response.
+        image (binary file): The image to be processed as binary file.
+        include_annotated (bool): Whether to include the annotated image in the response.
+        include_bounding_box_coords (bool): Whether to include the bounding box coordinates of the faces in the response.
 
     Returns:
-        A json with the face_ids as UUIDs by default.
-        The include annotated and include bounding box coords give options
-        to include more data in the return.
+        dict: A JSON object containing the following keys:
+            - face_ids (list of str): A list of UUIDs for the detected faces.
+            - If include_annotated is True:
+                - colors (list of list of int): RGB color values for the annotations for each face.
+                - image (dict): A dictionary containing the annotated image as a base64 string and its size.
+            - If include_bounding_box_coords is True:
+                - bounding_box_coords (list of list of int): A list of bounding box coordinates for each face, in CSS order.
+
+    Example:
+
+        ``` python
+        import requests
+
+        file_path = "path/to/your/image.png"
+        url = "http://127.0.0.1:8000/upload_image"
+
+        with open(file_path, "rb") as image_file:
+            payload = {"image": image_file}
+            # Optional parameters
+            params = {
+                "include_annotated": True,
+                "include_bounding_box_coords": True
+            }
+
+            response = requests.post(url, files=payload, params=params, timeout=10)
+
+        print(response.json())
+
+        # To convert the base64 image string from the json response to a PIL Image:
+        from PIL import Image
+
+        response_json = json.loads(response.json())
+        image_data = response_json["image"]
+        image = image_data["image"].encode("latin1")
+        size = image_data["size"]
+        image = Image.frombytes("RGB", (size[1], size[0]), image)
+        ```
+
+        Example Output JSON:
+        ```json
+        {
+            "face_ids": ["75b84592f43a43c8b73f570cf1fe9fb4"],
+            "colors": [[153, 51, 51]],
+            "image": {
+                "image": "BASE64 IMAGE STRING",
+                "size": [100, 100]
+            },
+            "bounding_box_coords": [[31, 69, 74, 26]]
+        }
+        ```
     """
 
     # Extract faces from image
@@ -105,6 +154,8 @@ def getEmotions(
 
     Returns:
         A json with the top-n emotions for the face.
+
+
     """
 
     # Get the face image in the correct format.
