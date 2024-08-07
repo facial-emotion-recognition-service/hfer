@@ -97,11 +97,22 @@ class AppLogic:
         return (annotated_image, colors)
 
     def resize_image(self, image):
-        # Resize image so that the largest dimension is 1000
+        """
+        Resizes an image so that the largest dimension is 1000 pixels.
+
+        Args:
+            image: An np.array.
+
+        Returns:
+            image: A resized np.array.
+        """
+
         length, width = image.size[0], image.size[1]
         max_dim = max(length, width)
         if max_dim > 1000:
-            image = image.resize((int(length / max_dim * 1000), int(width / max_dim * 1000)))
+            image = image.resize(
+                (int(length / max_dim * 1000), int(width / max_dim * 1000))
+            )
         return image
 
     def convert_upload_to_array(self, image) -> np.array:

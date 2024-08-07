@@ -22,7 +22,6 @@ app.add_middleware(
 config = ConfigProvider().config
 app.state.hfer = AppLogic(
     config["model_path"],
-    config["labels"],
     config.get("bucket_name"),
 )
 
