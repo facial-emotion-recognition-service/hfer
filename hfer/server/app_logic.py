@@ -20,10 +20,9 @@ class AppLogic:
     def __init__(
         self,
         model_path,
-        config_data,
         bucket_name,
     ):
-        self.predictor = Predictor(model_path, config_data, bucket_name)
+        self.predictor = Predictor(model_path, bucket_name)
         self.extractor = Extractor()
         self.image_annotator = ImageAnnotator()
         self.faces_dict = {}
@@ -97,6 +96,14 @@ class AppLogic:
         )
         return (annotated_image, colors)
 
+    def resize_image(self, image):
+        # Resize image so that the largest dimension is 1000
+        length, width = image.size[0], image.size[1]
+        max_dim = max(length, width)
+        if max_dim > 1000:
+            image = image.resize((int(length / max_dim * 1000), int(width / max_dim * 1000)))
+        return image
+
     def convert_upload_to_array(self, image) -> np.array:
         """
         Converts an image uploaded from Streamlit to a numpy array.
@@ -109,6 +116,7 @@ class AppLogic:
         """
         image = BytesIO(image.file.read())
         image = Image.open(image)
+        image = self.resize_image(image)
         if image.mode != "RGB":
             image = image.convert("RGB")
         image = np.array(image)

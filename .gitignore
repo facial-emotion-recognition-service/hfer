@@ -1,6 +1,6 @@
 # Configuration
-.env
-.envrc
+# .env
+# .envrc
 
 # IDE
 .idea/**
@@ -19,8 +19,8 @@ dist/
 # Models & Data
 *.csv
 **/raw_data_**/
-*.h5
-models/
+/models/**
+!/models/.gitkeep
 
 # Docker
 docker_volume/**
