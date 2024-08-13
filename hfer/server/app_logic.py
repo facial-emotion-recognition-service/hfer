@@ -10,11 +10,6 @@ from hfer.core.extractor import Extractor
 from hfer.core.image_annotator import ImageAnnotator
 from hfer.core.predictors import Predictor
 
-## TO DO Roll app config provider into app_logic
-## TO DO roll model config provider into core.model??
-## TO DO fix core.image_viewer so it returns an image
-## Rename image_viwere
-
 
 class AppLogic:
     def __init__(
@@ -34,8 +29,7 @@ class AppLogic:
         Args:
             image (Numpy.array): The image of an isolated face.
             top_n (int): The number of emotions to be returned.
-            ret (str): The format the images should be returned in. Either 'text'
-        or 'num'.
+            ret (str): The format the images should be returned in. Either 'text' or 'num'.
 
         Returns:
             A dict mapping the top n emotions to their probabilities.
@@ -91,9 +85,7 @@ class AppLogic:
             with each face as a list.
         """
         face_coords = [self.faces_dict[face_id][1] for face_id in face_ids]
-        annotated_image, colors = self.image_annotator.annotate_faces(
-            image, face_coords
-        )
+        annotated_image, colors = self.image_annotator.annotate_faces(image, face_coords)
         return (annotated_image, colors)
 
     def resize_image(self, image):
@@ -109,9 +101,7 @@ class AppLogic:
         length, width = image.size[0], image.size[1]
         max_dim = max(length, width)
         if max_dim > 1000:
-            image = image.resize(
-                (int(length / max_dim * 1000), int(width / max_dim * 1000))
-            )
+            image = image.resize((int(length / max_dim * 1000), int(width / max_dim * 1000)))
         return image
 
     def convert_upload_to_array(self, image) -> np.array:
@@ -142,9 +132,7 @@ class AppLogic:
         Returns:
             The corresponding face as a np.array.
         """
-        image = (
-            Image.fromarray(np.uint8(image)).convert("RGB").tobytes().decode("latin1")
-        )
+        image = Image.fromarray(np.uint8(image)).convert("RGB").tobytes().decode("latin1")
         return image
 
     def get_image_from_id(self, face_id: uuid) -> np.array:

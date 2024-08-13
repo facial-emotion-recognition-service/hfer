@@ -54,7 +54,7 @@ def uploadImage(
             - face_ids (list of str): A list of UUIDs for the detected faces.
             - If include_annotated is True:
                 - colors (list of list of int): RGB color values for the annotations for each face.
-                - image (dict): A dictionary containing the annotated image as a base64 string and its size.
+                - image (dict): A dictionary containing the annotated image as a base64 string and its dimentions as a list.
             - If include_bounding_box_coords is True:
                 - bounding_box_coords (list of list of int): A list of bounding box coordinates for each face, in CSS order.
 
@@ -80,6 +80,7 @@ def uploadImage(
 
         # To convert the base64 image string from the json response to a PIL Image:
         from PIL import Image
+        import requests
 
         response_json = json.loads(response.json())
         image_data = response_json["image"]
@@ -89,7 +90,7 @@ def uploadImage(
         ```
 
         Example Output JSON:
-        ```json
+        ``` json
         {
             "face_ids": ["75b84592f43a43c8b73f570cf1fe9fb4"],
             "colors": [[153, 51, 51]],
@@ -139,22 +140,82 @@ def getEmotions(
     top_n=3,
     ret="text",
 ):
-    """API that returns the top-n emotions from a single face.
+    """
 
-    Retrieves the top n emotions from an image of a single, isolated face,
-    along with their probabilities. The face can be retrieved from temporary
-    storage by UUID or passed directly to the API.
+    API for extracting the top n emotions from an image of a single face.
+
+    This API retrieves the top n emotions from an image of a single, isolated face.
+    The face can be retrieved from temporary storage by UUID or passed directly to the API.
 
     Args:
-        face_id: UUID for the face image.
-        face_image: Face image
-        include_image: Include the face image in the response.
-        top_n: Number of top emotions to return.
-        ret: Label type for the returned dict. One of "text" or "num".
+        face_id (str): The UUID of a face in temporary storage. If provided, face_image is ignored.
+        face_image (binary file): The image to be processed as a binary file. Only used if face_id is not provided.
+        include_image (bool): Whether to include the input image in the response.
+        top_n (int): Number of top emotions to return.
+        ret (str): Label type for the returned dict. One of "text" or "num". The mappings are as follows:
+
+        "surprise": 0
+        "fear": 1
+        "disgust": 2
+        "happiness": 3
+        "anger": 4
+        "sadness": 5
+        "neutral": 6
 
     Returns:
-        A json with the top-n emotions for the face.
+        dict: A JSON containing the following keys:
+            - emotions (dict): the top n emotions expressed by the face and the corresponding probabilities, sorted in descending order of probability.
+            - If include_image is True:
+                - image (dict): A dictionary containing the input image as a base64 string and its dimentions as a list.
 
+    Example:
+
+        ``` python
+
+        url = "http://127.0.0.1:8000/emotions"
+
+        # Provide either the face_id or the face_image
+        params = {
+            "face_id": "75b84592f43a43c8b73f570cf1fe9fb4",
+            # "face_image": open("path/to/your/image.png", "rb")
+        }
+
+        # Optional parameters
+        params.update({
+            "include_image": True,
+            "top_n": 3,
+            "ret": "text"
+        })
+
+        response = requests.get(url, params=params, timeout=10)
+
+        print(response.json())
+
+        # To convert the base64 image string from the json response to a PIL Image:
+        from PIL import Image
+        import requests
+
+        response_json = json.loads(response.json())
+        image_data = response_json["image"]
+        image = image_data["image"].encode("latin1")
+        size = image_data["size"]
+        image = Image.frombytes("RGB", (size[1], size[0]), image)
+        ```
+
+        Example Output JSON:
+        ``` json
+        {
+            "emotions": {
+                "happiness": 0.6,
+                "sadness": 0.3,
+                "neutral": 0.1
+            },
+            "image": {
+                "image": "BASE64 IMAGE STRING",
+                "size": [100, 100]
+            },
+        }
+        ```
 
     """
 
